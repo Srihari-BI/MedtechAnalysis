@@ -1,0 +1,117 @@
+-- Query 1: Patient Engagement Analysis by Month and Device Type
+WITH MonthlyEngagement AS (
+   SELECT
+       DATE_FORMAT(a.appointment_date, '%Y-%m') AS appointment_month,
+       p.patient_id,
+       COUNT(DISTINCT a.appointment_id) AS num_appointments,
+       SUM(p.payment_amount) AS total_revenue
+   FROM Appointments a
+   JOIN Patients p ON a.patient_id = p.patient_id
+   GROUP BY appointment_month, p.patient_id
+)
+
+SELECT
+   me.appointment_month,
+   COUNT(DISTINCT me.patient_id) AS num_patients,
+   SUM(me.num_appointments) AS total_appointments,
+   SUM(me.total_revenue) AS total_revenue,
+   COUNT(DISTINCT CASE WHEN d.device_type = 'desktop' THEN me.patient_id END) AS desktop_patients,
+   COUNT(DISTINCT CASE WHEN d.device_type = 'mobile' THEN me.patient_id END) AS mobile_patients
+FROM MonthlyEngagement me
+LEFT JOIN Devices d ON me.patient_id = d.patient_id
+GROUP BY me.appointment_month;
+
+-- Query 2: Top Performing Doctors by Revenue and Patient Count
+SELECT
+   d.doctor_id,
+   d.doctor_name,
+   COUNT(DISTINCT a.patient_id) AS num_patients,
+   COUNT(a.appointment_id) AS num_appointments,
+   SUM(p.payment_amount) AS total_revenue
+FROM Doctors d
+LEFT JOIN Appointments a ON d.doctor_id = a.doctor_id
+LEFT JOIN Payments p ON a.appointment_id = p.appointment_id
+GROUP BY d.doctor_id, d.doctor_name
+ORDER BY total_revenue DESC, num_patients DESC;
+
+-- Query 3: Patient Retention Analysis Over Time
+WITH RetentionData AS (
+   SELECT
+       p.patient_id,
+       DATE_FORMAT(MIN(a.appointment_date), '%Y-%m') AS first_appointment_month,
+       DATE_FORMAT(MAX(a.appointment_date), '%Y-%m') AS last_appointment_month
+   FROM Patients p
+   LEFT JOIN Appointments a ON p.patient_id = a.patient_id
+   GROUP BY p.patient_id
+)
+
+SELECT
+   DATEDIFF(r.last_appointment_month, r.first_appointment_month) AS retention_duration,
+   COUNT(r.patient_id) AS num_patients
+FROM RetentionData r
+GROUP BY retention_duration
+ORDER BY retention_duration;
+
+-- Query 4: Patient Referral Source and Revenue Analysis
+SELECT
+   p.referral_source,
+   COUNT(DISTINCT p.patient_id) AS num_patients,
+   SUM(pm.payment_amount) AS total_revenue
+FROM Patients p
+LEFT JOIN Appointments a ON p.patient_id = a.patient_id
+LEFT JOIN Payments pm ON a.appointment_id = pm.appointment_id
+GROUP BY p.referral_source
+ORDER BY total_revenue DESC;
+
+-- Query 5: Appointment Time Slot Utilization Analysis
+SELECT
+   DATE_FORMAT(a.appointment_date, '%Y-%m-%d') AS appointment_date,
+   TIME_FORMAT(a.appointment_time, '%H:%i') AS appointment_time,
+   COUNT(a.appointment_id) AS num_appointments,
+   COUNT(CASE WHEN a.status = 'completed' THEN a.appointment_id END) AS num_completed,
+   COUNT(CASE WHEN a.status = 'cancelled' THEN a.appointment_id END) AS num_cancelled
+FROM Appointments a
+GROUP BY appointment_date, appointment_time
+ORDER BY appointment_date, appointment_time;
+
+-- Query 6: Detailed Medical Record Analysis for a Patient
+SELECT
+   p.patient_id,
+   p.patient_name,
+   m.record_id,
+   m.record_date,
+   m.diagnosis,
+   m.prescription,
+   md.medical_specialty
+FROM Patients p
+LEFT JOIN MedicalRecords m ON p.patient_id = m.patient_id
+LEFT JOIN MedicalDoctors md ON m.doctor_id = md.doctor_id
+WHERE p.patient_id = 'patient_id_here';
+
+-- Query 7: Patient Appointment History and Payment Details
+SELECT
+   p.patient_id,
+   p.patient_name,
+   a.appointment_id,
+   a.appointment_date,
+   a.appointment_time,
+   a.status,
+   p.payment_amount,
+   pm.payment_method
+FROM Patients p
+LEFT JOIN Appointments a ON p.patient_id = a.patient_id
+LEFT JOIN Payments pm ON a.appointment_id = pm.appointment_id
+ORDER BY p.patient_id, a.appointment_date;
+
+-- Query 8: Doctor-Patient Interaction Analysis
+SELECT
+   d.doctor_id,
+   d.doctor_name,
+   COUNT(DISTINCT p.patient_id) AS num_patients,
+   COUNT(a.appointment_id) AS num_appointments,
+   AVG(DATEDIFF(a.appointment_date, p.date_of_birth)) AS avg_patient_age
+FROM Doctors d
+LEFT JOIN Appointments a ON d.doctor_id = a.doctor_id
+LEFT JOIN Patients p ON a.patient_id = p.patient_id
+GROUP BY d.doctor_id, d.doctor_name
+ORDER BY num_patients DESC, num_appointments DESC;

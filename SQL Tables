@@ -1,0 +1,88 @@
+-- Create Patients table
+CREATE TABLE Patients (
+    patient_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_name VARCHAR(100) NOT NULL,
+    date_of_birth DATE,
+    gender ENUM('Male', 'Female', 'Other'),
+    contact_number VARCHAR(20),
+    address VARCHAR(255),
+    email VARCHAR(100)
+);
+
+-- Insert records into Patients table
+INSERT INTO Patients (patient_name, date_of_birth, gender, contact_number, address, email)
+VALUES
+    ('John Doe', '1980-05-15', 'Male', '+1234567890', '123 Main St, Anytown', 'john.doe@example.com'),
+    ('Jane Smith', '1975-09-22', 'Female', '+1987654321', '456 Oak Ave, Smalltown', 'jane.smith@example.com'),
+    ('Michael Johnson', '1992-03-10', 'Male', '+1654321876', '789 Elm Rd, Bigcity', 'michael.johnson@example.com'),
+    ('Emily Davis', '1988-12-03', 'Female', '+1432789456', '321 Pine Blvd, Villageton', 'emily.davis@example.com'),
+    ('Robert Brown', '1970-07-28', 'Male', '+1789456123', '567 Cedar Ln, Townsville', 'robert.brown@example.com'),
+    ('Sarah Wilson', '1985-04-17', 'Female', '+1650432876', '890 Maple St, Countryside', 'sarah.wilson@example.com');
+
+-- Create Doctors table
+CREATE TABLE Doctors (
+    doctor_id INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_name VARCHAR(100) NOT NULL,
+    specialization VARCHAR(100),
+    contact_number VARCHAR(20),
+    email VARCHAR(100)
+);
+
+-- Insert records into Doctors table
+INSERT INTO Doctors (doctor_name, specialization, contact_number, email)
+VALUES
+    ('Dr. Smith', 'Cardiology', '+1234567890', 'dr.smith@hospital.com'),
+    ('Dr. Johnson', 'Pediatrics', '+1987654321', 'dr.johnson@hospital.com'),
+    ('Dr. Williams', 'Neurology', '+1654321876', 'dr.williams@hospital.com'),
+    ('Dr. Brown', 'Orthopedics', '+1432789456', 'dr.brown@hospital.com'),
+    ('Dr. Wilson', 'Oncology', '+1789456123', 'dr.wilson@hospital.com'),
+    ('Dr. Davis', 'Dermatology', '+1650432876', 'dr.davis@hospital.com');
+
+-- Create Appointments table
+CREATE TABLE Appointments (
+    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    appointment_date DATE,
+    appointment_time TIME,
+    status ENUM('scheduled', 'completed', 'canceled'),
+    reason_for_visit VARCHAR(255),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)
+);
+
+-- Insert records into Appointments table
+INSERT INTO Appointments (patient_id, doctor_id, appointment_date, appointment_time, status, reason_for_visit)
+VALUES
+    (1, 1, '2024-06-25', '10:00:00', 'scheduled', 'Annual check-up'),
+    (2, 3, '2024-06-26', '11:00:00', 'completed', 'Follow-up appointment'),
+    (3, 2, '2024-06-27', '14:30:00', 'scheduled', 'Physical examination'),
+    (4, 4, '2024-06-28', '09:45:00', 'canceled', 'Consultation'),
+    (5, 5, '2024-06-29', '15:15:00', 'scheduled', 'Treatment session'),
+    (6, 1, '2024-06-30', '13:00:00', 'scheduled', 'Routine check-up');
+
+-- Create MedicalRecords table
+CREATE TABLE MedicalRecords (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    appointment_id INT,
+    record_date DATE,
+    symptoms TEXT,
+    diagnosis TEXT,
+    treatment TEXT,
+    prescription TEXT,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id),
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id)
+);
+
+-- Insert records into MedicalRecords table
+INSERT INTO MedicalRecords (patient_id, doctor_id, appointment_id, record_date, symptoms, diagnosis, treatment, prescription)
+VALUES
+    (1, 1, 1, '2024-06-25', 'None', 'Healthy', 'None', 'None'),
+    (2, 3, 2, '2024-06-26', 'Fever, Cough', 'Common cold', 'Rest and fluids', 'Paracetamol 500mg'),
+    (3, 2, 3, '2024-06-27', 'Back pain', 'Muscle strain', 'Physical therapy', 'Ibuprofen 400mg'),
+    (4, 4, 4, '2024-06-28', 'None', 'Consultation canceled', 'None', 'None'),
+    (5, 5, 5, '2024-06-29', 'Fatigue, Headache', 'Anemia', 'Iron supplements', 'Ferrous sulfate 200mg'),
+    (6, 1, 6, '2024-06-30', 'None', 'Routine check-up', 'None', 'None');
